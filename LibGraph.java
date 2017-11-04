@@ -1,9 +1,5 @@
 import java.util.*;
-
-/*
- * Warning: This code does not work yet and still needs to be debugged.
- * Hopefully I'll get around to finishing it tomorrow.
- */
+import java.io.*;
 
 class Tarjan {
 	static ArrayList<Integer>[] adjLists;
@@ -20,8 +16,10 @@ class Tarjan {
 		ArrayList<ArrayList<Integer> > components = new ArrayList<ArrayList<Integer> >();
 		for (int w: adjLists[v]) {
 			if (index[w] == -1) {
-				strongConnect(w);
-				lowlink[w] = Math.min(lowlink[v], lowlink[w]);
+				for (ArrayList<Integer> comp: strongConnect(w)) {
+					components.add(comp);
+				}
+				lowlink[v] = Math.min(lowlink[v], lowlink[w]);
 			} else if (onStack[w]) {
 				lowlink[v] = Math.min(lowlink[v], index[w]);
 			}
@@ -30,8 +28,7 @@ class Tarjan {
 			int w;
 			ArrayList<Integer> comp = new ArrayList<Integer>();
 			do {
-				w = S.get(S.size()-1);
-				S.remove(S.size()-1);
+				w = S.remove(S.size()-1);
 				onStack[w] = false;
 				comp.add(w);
 			} while (w != v);
@@ -52,7 +49,8 @@ class Tarjan {
 		ArrayList<ArrayList<Integer> > sccList = new ArrayList<ArrayList<Integer> >();
 		for (int v=0; v<adjLists.length; ++v) {
 			if (index[v] == -1) {
-				for (ArrayList<Integer> arr: strongConnect(v)) {
+				ArrayList<ArrayList<Integer> > sccs = strongConnect(v);
+				for (ArrayList<Integer> arr: sccs) {
 					sccList.add(arr);
 				}
 			}
@@ -87,7 +85,7 @@ class Kosaraju {
 		assigned = new boolean[L.size()];
 		for (int u=0; u<L.size(); ++u) {
 			ArrayList<Integer> comp = new ArrayList<Integer>();
-			Assign(u, comp);
+			Assign(L.get(u), comp);
 			if (comp.size() > 0) {
 				comps.add(comp);
 			}
@@ -99,8 +97,8 @@ class Kosaraju {
 			visited[u] = true;
 			for (int v: adjLists[u]) {
 				Visit(v);
-				L.add(v);
 			}
+			L.add(u);
 		}
 	}
 	public static void Assign(int u, ArrayList<Integer> comp) {
@@ -116,6 +114,7 @@ class Kosaraju {
 
 class LibGraph {
 	// given adjacency matrix of distances returns matrix of minimum distances
+	// O(n^3)
 	public static int[][] FloydWarshall(int[][] distMat) {
 		int n = distMat.length;
 		int spaths[][] = new int[n][n];
@@ -166,18 +165,22 @@ class LibGraph {
 	}
 	
 	public static void main(String[] args) {
-		// testing code
-		ArrayList<Integer>[] G = new ArrayList[6];
-		for (int i=0; i<6; ++i) {
+		// testing code - SCC algos
+		int n,m;
+		Scanner sc = new Scanner(System.in);
+		n = sc.nextInt();
+		m = sc.nextInt();
+		ArrayList<Integer>[] G = new ArrayList[n];
+		for (int i=0; i<n; ++i) {
 			G[i] = new ArrayList<Integer>();
 		}
-		G[0].add(1);
-		G[1].add(2);
-		G[2].add(0);
-		G[3].add(4);
-		G[4].add(3);
-		G[1].add(3);
-		G[5].add(3);
+		int u, v;
+		for (int i=0; i<m; ++i) {
+			u = sc.nextInt();
+			v = sc.nextInt();
+			G[u].add(v);
+		}
 		System.out.println(Kosaraju.getSCCs(G));
+		System.out.println(Tarjan.getSCCs(G));		
 	}
 }
